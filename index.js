@@ -22,8 +22,11 @@ const status = {
 };
 const registry = {};
 const PORT = 2087;
+const seedCount = 2048;
 const app = new Koa();
 const router = new KoaRouter();
+
+const seeds = [];
 
 ///////////////////
 // SETUP EXPRESS 
@@ -81,6 +84,10 @@ router.get("/online/:appID", (req, res) => {
 
 router.get("/ping", context => context.body = { message: "pong" });//(req, res) => res.send("pong"));
 
+router.get("/unique", (req, res) => {
+    const seed = seeds.shift();
+    res.send([Date.getTime().toString(16),Math.floor(Math.random()*(seed))].join('-'));
+});
 router.get("/timestamp", (req, res) => res.send(Date.getTime()));
 // https://stormpath.com/blog/nodejs-jwt-create-verify
 // you share the secret with the 3rd party server before hand (this is when 3rd party owner register on your site) (happens only one time and never show the secret again)
@@ -123,8 +130,6 @@ function cleanup() {
         const timeout = new Date(Date.now() - 30000).getTime();
         const offline = new Date(Date.now() - 60000).getTime();
         for (var user in registry[app]) {
-
-
             if (registry[app][user].timestamp < timeout && registry[app][user].timestamp > offline) {
                 registry[app][user].status = status.timeout;
             }
@@ -133,5 +138,12 @@ function cleanup() {
             }
         }
     }
+    KeyGeneration();
 }
 setInterval(() => cleanup(), 5000);
+async function KeyGeneration(){
+    if(seeds.length < seedCount)
+    [...Array(seedCount - seeds.length)].map((_, i) => {
+        seeds.push(Math.floor(Math.random * 9.99)+2);
+      });
+}
