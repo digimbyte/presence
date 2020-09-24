@@ -1,7 +1,7 @@
 /*jshint esversion: 10 */
 import Koa from 'koa';              // https://www.npmjs.com/package/koa
 import helmet from 'koa-helmet';    // https://www.npmjs.com/package/koa-helmet
-import KoaRouter from 'koa-router';
+import KoaRouter from 'koa-router'; // https://www.npmjs.com/package/koa-router
 
 import fs from 'fs';
 
@@ -23,13 +23,13 @@ const status = {
 const registry = {};
 const PORT = 2087;
 const seedCount = 2048;
+const seeds = [];
 const app = new Koa();
 const router = new KoaRouter();
 
 ///////////////////
 // INITIAL SETUP 
 ///////////////////
-const seeds = [];
 
 KeyGeneration();
 
@@ -61,7 +61,7 @@ KeyGeneration();
 
 
 
-router.get('/', (ctx, next) => {    // ctx.router available
+router.get('/', (context, next) => {    // ctx.router available
 });
 
 // APP MIDDLEWARE
