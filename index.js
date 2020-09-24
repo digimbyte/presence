@@ -26,16 +26,16 @@ const seedCount = 2048;
 const app = new Koa();
 const router = new KoaRouter();
 
+///////////////////
+// INITIAL SETUP 
+///////////////////
 const seeds = [];
-let seedMask;
+
+KeyGeneration();
 
 ///////////////////
 // SETUP EXPRESS 
 ///////////////////
-console.log(((new Date()).getTime() - 1600000000000).toString(8));
-console.log(((new Date()).getTime() - 1600000000000).toString(16));
-console.log(((new Date()).getTime() - 1600000000000).toString(32));
-
 
 // app.use(helmet());
 
@@ -57,13 +57,11 @@ console.log(((new Date()).getTime() - 1600000000000).toString(32));
 ///////////////////
 // RUN EXPRESS 
 ///////////////////
-// app.use(async ctx => (ctx.body = {}));
 
 
 
 
-router.get('/', (ctx, next) => {
-    // ctx.router available
+router.get('/', (ctx, next) => {    // ctx.router available
 });
 
 // APP MIDDLEWARE
@@ -90,11 +88,8 @@ router.get("/online/:appID", (req, res) => {
 
 router.get("/ping", context => context.body = { message: "pong" });//(req, res) => res.send("pong"));
 
-router.get("/unique", (req, res) => {
-
-    res.send(GetUniqueKey());
-});
-router.get("/timestamp", (req, res) => res.send(Date.getTime()));
+router.get("/unique", context => context.body = GetUniqueKey());
+router.get("/timestamp", context => context.body = Date.now());
 // https://stormpath.com/blog/nodejs-jwt-create-verify
 // you share the secret with the 3rd party server before hand (this is when 3rd party owner register on your site) (happens only one time and never show the secret again)
 // 1. 3rd party client app request JWT from 3rd party server (you don't give a fuck about what mechanism they're using)
@@ -150,7 +145,6 @@ setInterval(() => cleanup(), 5000);
 
 function GetUniqueKey() {
     const seed = seeds.shift();
-    console.log(seed);
     return [((new Date()).getTime() - 1600000000000).toString(16), Math.floor((new Date()).getTime() % seed + seed)].join('-');
 }
 async function KeyGeneration() {
@@ -158,5 +152,4 @@ async function KeyGeneration() {
         await [...Array(seedCount - seeds.length)].map((_, i) => {
             seeds.push(Math.floor((Math.random() * seedCount / 20) + 1));
         });
-    console.log(GetUniqueKey());
 }
