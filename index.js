@@ -27,15 +27,21 @@ const app = new Koa();
 const router = new KoaRouter();
 
 const seeds = [];
+let seedMask;
 
 ///////////////////
 // SETUP EXPRESS 
 ///////////////////
+console.log(((new Date()).getTime() - 1600000000000).toString(8));
+console.log(((new Date()).getTime() - 1600000000000).toString(16));
+console.log(((new Date()).getTime() - 1600000000000).toString(32));
+
 
 // app.use(helmet());
 
 // // adding Helmet to enhance your API's security
 // app.use(helmet());
+
 
 // // using bodyParser to parse JSON bodies into JS objects
 // app.use(bodyParser.json());
@@ -85,8 +91,8 @@ router.get("/online/:appID", (req, res) => {
 router.get("/ping", context => context.body = { message: "pong" });//(req, res) => res.send("pong"));
 
 router.get("/unique", (req, res) => {
-    const seed = seeds.shift();
-    res.send([Date.getTime().toString(16),Math.floor(Math.random()*(seed))].join('-'));
+
+    res.send(GetUniqueKey());
 });
 router.get("/timestamp", (req, res) => res.send(Date.getTime()));
 // https://stormpath.com/blog/nodejs-jwt-create-verify
@@ -122,7 +128,7 @@ router.put("/update/:appID", async (req, res) => {
 });
 
 /////////////////////
-// PROCESS OFFLINE
+// INTERNAL FUNCTIONS
 /////////////////////
 function cleanup() {
     for (var app in registry) {
@@ -141,9 +147,16 @@ function cleanup() {
     KeyGeneration();
 }
 setInterval(() => cleanup(), 5000);
-async function KeyGeneration(){
-    if(seeds.length < seedCount)
-    [...Array(seedCount - seeds.length)].map((_, i) => {
-        seeds.push(Math.floor(Math.random * 9.99)+2);
-      });
+
+function GetUniqueKey() {
+    const seed = seeds.shift();
+    console.log(seed);
+    return [((new Date()).getTime() - 1600000000000).toString(16), Math.floor((new Date()).getTime() % seed + seed)].join('-');
+}
+async function KeyGeneration() {
+    if (seeds.length < seedCount)
+        await [...Array(seedCount - seeds.length)].map((_, i) => {
+            seeds.push(Math.floor((Math.random() * seedCount / 20) + 1));
+        });
+    console.log(GetUniqueKey());
 }
