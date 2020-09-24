@@ -101,7 +101,7 @@ router.put("/update/:appID", async (req, res) => {
         if (!registry[validator.escape(req.params.appID)]) registry[validator.escape(req.params.appID)] = {};
         registry[validator.escape(req.params.appID)][validator.escape(req.body.user)] = {
             status: status.online,
-            timestamp: moment().add(3, 'seconds').unix()
+            timestamp: new Date(Date.now() + 3000).getTime()
         };
         res.send('success');
     }
