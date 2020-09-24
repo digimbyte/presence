@@ -54,13 +54,13 @@ const router = new KoaRouter();
 
 
 router.get('/', (ctx, next) => {
-  // ctx.router available
+    // ctx.router available
 });
 
 // APP MIDDLEWARE
 app
-  .use(router.routes())
-  .use(router.allowedMethods());
+    .use(router.routes())
+    .use(router.allowedMethods());
 // APP LISTENERS
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
@@ -79,7 +79,7 @@ router.get("/online/:appID", (req, res) => {
 
 });
 
-router.get("/ping", context => context.body = {message: "pong"});//(req, res) => res.send("pong"));
+router.get("/ping", context => context.body = { message: "pong" });//(req, res) => res.send("pong"));
 
 router.get("/timestamp", (req, res) => res.send(Date.getTime()));
 // https://stormpath.com/blog/nodejs-jwt-create-verify
@@ -97,18 +97,19 @@ router.put("/update/:appID", async (req, res) => {
         // Check timestamp
         // Decode JWT
         // Once Verified, append to objects
-    try {
-        if (!registry[validator.escape(req.params.appID)]) registry[validator.escape(req.params.appID)] = {};
-        registry[validator.escape(req.params.appID)][validator.escape(req.body.user)] = {
-            status: status.online,
-            timestamp: new Date(Date.now() + 3000).getTime()
-        };
-        res.send('success');
+        try {
+            if (!registry[validator.escape(req.params.appID)]) registry[validator.escape(req.params.appID)] = {};
+            registry[validator.escape(req.params.appID)][validator.escape(req.body.user)] = {
+                status: status.online,
+                timestamp: new Date(Date.now() + 3000).getTime()
+            };
+            res.send('success');
+        }
+        catch (e) {
+            console.warn(e);
+            res.send(e);
+        }
     }
-    catch (e) {
-        console.warn(e);
-        res.send(e);
-    }}
     return;
 
 });
@@ -119,10 +120,10 @@ router.put("/update/:appID", async (req, res) => {
 function cleanup() {
     for (var app in registry) {
         if (Object.keys(registry[app]).length == 0) { delete registry[app]; continue; }
+        const timeout = new Date(Date.now() - 30000).getTime();
+        const offline = new Date(Date.now() - 60000).getTime();
         for (var user in registry[app]) {
 
-            const timeout = new Date(Date.now() - 30000).getTime();
-            const offline = new Date(Date.now() - 60000).getTime();
 
             if (registry[app][user].timestamp < timeout && registry[app][user].timestamp > offline) {
                 registry[app][user].status = status.timeout;
