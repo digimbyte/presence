@@ -1,13 +1,13 @@
-/*jshint esversion: 8 */
-import express from 'express';
+/*jshint esversion: 10 */
+import Koa from 'koa';              // https://www.npmjs.com/package/koa
+import helmet from 'koa-helmet';    // https://www.npmjs.com/package/koa-helmet
+import KoaRouter from 'koa-router';
 
 import fs from 'fs';
-import moment from 'moment-timezone';
 
 
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import helmet from 'helmet';
 import validator from 'validator';
 //import morgan from 'morgan';
 // REFERENCE: https://auth0.com/blog/node-js-and-express-tutorial-building-and-securing-restful-apis/#Building-and-Securing-RESTful-APIs
@@ -22,51 +22,52 @@ const status = {
 };
 const registry = {};
 const PORT = 2087;
-const app = express();
-
-// 
-// 80
-// 8080
-// 8880
-// 2052
-// 2082
-// 2086
-// 2095
-// HTTPS ports supported by Cloudflare:
-// 
-// 443
-// 2053
-// 2083
-// 2087
-// 2096
-// 8443
+const app = new Koa();
+const router = new KoaRouter();
 
 ///////////////////
 // SETUP EXPRESS 
 ///////////////////
 
-// adding Helmet to enhance your API's security
-app.use(helmet());
+// app.use(helmet());
 
-// using bodyParser to parse JSON bodies into JS objects
-app.use(bodyParser.json());
+// // adding Helmet to enhance your API's security
+// app.use(helmet());
 
-// enabling CORS for all requests
-app.use(cors());
+// // using bodyParser to parse JSON bodies into JS objects
+// app.use(bodyParser.json());
+
+// // enabling CORS for all requests
+// app.use(cors());
 
 // // adding morgan to log HTTP requests
 // app.use(morgan.default('combined'));
 
-app.locals.pretty = true;
+// app.locals.pretty = true;
 
 ///////////////////
 // RUN EXPRESS 
 ///////////////////
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+// app.use(async ctx => (ctx.body = {}));
+
+
+
+
+router.get('/', (ctx, next) => {
+  // ctx.router available
 });
-app.get("/", (req, res) => res.send());
-app.get("/online/:appID", (req, res) => {
+
+// APP MIDDLEWARE
+app
+  .use(router.routes())
+  .use(router.allowedMethods());
+// APP LISTENERS
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+
+router.get("/", (req, res) => res.send());
+router.get("/online/:appID", (req, res) => {
     if (!req.params.appID) { res.send('invalid or missing app id'); return; }
     if (!req.body.users) { res.send('invalid or missing users string[]'); return; }
     if (registry[validator.escape(req.params.appID)] && Array.isArray(req.body.users)) {
@@ -78,38 +79,38 @@ app.get("/online/:appID", (req, res) => {
 
 });
 
-app.get("/ping", (req, res) => res.send("pong"));
+router.get("/ping", context => context.body = {message: "pong"});//(req, res) => res.send("pong"));
 
-app.get("/timestamp", (req, res) => res.send(
-    moment().unix()
-));
+router.get("/timestamp", (req, res) => res.send(Date.getTime()));
 
+// you share the secret with the 3rd party server before hand (this is when 3rd party owner register on your site) (happens only one time and never show the secret again)
+// 1. 3rd party client app request JWT from 3rd party server (you don't give a fuck about what mechanism they're using)
+// 2. 3rd party server make a JWT signed with the pre-shared secret (let's say it's valid for half hour)
+// 3. 3rd party client make a request to your server with the JWT attached
+// 4. Your server verify the JWT with the shared secret and write to database
 
-
-app.put("/update/:appID", async (req, res) => {
+router.put("/update/:appID", async (req, res) => {
+    // All values exist?
+    if (!req.body.user) res.send("invalid user id");
+    else if (!req.params.appID) res.send("invalid App id");
+    else {
+        // Check timestamp
+        // Decode JWT
+        // Once Verified, append to objects
     try {
-        if (!req.body.user) {
-            res.send("invalid user id");
-            return;
-        }
-
-        else {
-            console.log(req.params);
-            console.log(req.body.user);
-            if (!registry[validator.escape(req.params.appID)]) registry[validator.escape(req.params.appID)] = {};
-            registry[validator.escape(req.params.appID)][validator.escape(req.body.user)] = {
-                status: status.online,
-                timestamp: moment().add(3, 'seconds').unix()
-            };
-            res.send('success');
-            return;
-        }
+        if (!registry[validator.escape(req.params.appID)]) registry[validator.escape(req.params.appID)] = {};
+        registry[validator.escape(req.params.appID)][validator.escape(req.body.user)] = {
+            status: status.online,
+            timestamp: moment().add(3, 'seconds').unix()
+        };
+        res.send('success');
     }
     catch (e) {
         console.warn(e);
         res.send(e);
-        return;
-    }
+    }}
+    return;
+
 });
 
 /////////////////////
@@ -120,8 +121,8 @@ function cleanup() {
         if (Object.keys(registry[app]).length == 0) { delete registry[app]; continue; }
         for (var user in registry[app]) {
 
-            const timeout = moment().subtract(10, 'seconds').unix();
-            const offline = moment().subtract(30, 'seconds').unix();
+            const timeout = new Date(Date.now() - 30000).getTime();
+            const offline = new Date(Date.now() - 60000).getTime();
 
             if (registry[app][user].timestamp < timeout && registry[app][user].timestamp > offline) {
                 registry[app][user].status = status.timeout;

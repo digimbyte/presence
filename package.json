@@ -12,11 +12,11 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
-    "express": "^4.17.1",
     "helmet": "^3.23.3",
     "jshint": "^2.11.1",
-    "moment": "^2.27.0",
-    "moment-timezone": "^0.5.31",
+    "koa": "^2.13.0",
+    "koa-helmet": "^5.2.0",
+    "koa-router": "^9.4.0",
     "morgan": "^1.10.0",
     "sanitize": "^2.1.0",
     "validator": "^13.1.1"
