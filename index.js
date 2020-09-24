@@ -82,7 +82,7 @@ router.get("/online/:appID", (req, res) => {
 router.get("/ping", context => context.body = {message: "pong"});//(req, res) => res.send("pong"));
 
 router.get("/timestamp", (req, res) => res.send(Date.getTime()));
-
+// https://stormpath.com/blog/nodejs-jwt-create-verify
 // you share the secret with the 3rd party server before hand (this is when 3rd party owner register on your site) (happens only one time and never show the secret again)
 // 1. 3rd party client app request JWT from 3rd party server (you don't give a fuck about what mechanism they're using)
 // 2. 3rd party server make a JWT signed with the pre-shared secret (let's say it's valid for half hour)
